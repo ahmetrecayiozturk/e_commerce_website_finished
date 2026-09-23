@@ -45,7 +45,7 @@ export async function generateStaticParams() {
   } catch (error) {
     console.error(
       `Failed to generate static paths for product pages: ${
-        error instanceof Error ? error.message : "Unknown error"
+        error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu."
       }.`
     )
     return []
