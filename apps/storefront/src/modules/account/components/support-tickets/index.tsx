@@ -30,21 +30,29 @@ export default function SupportTickets({
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({})
   const [showNewForm, setShowNewForm] = useState(false)
   const [newForm, setNewForm] = useState({ subject: "", message: "" })
+  const [error, setError] = useState<string | null>(null)
 
   const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
   const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY!
 
   const fetchTickets = async () => {
     setLoading(true)
-    const res = await fetch(
-      `${backendUrl}/store/support-tickets?email=${encodeURIComponent(
-        customerEmail
-      )}`,
-      { headers: { "x-publishable-api-key": publishableKey } }
-    )
-    const data = await res.json()
-    setTickets(data.support_tickets ?? [])
-    setLoading(false)
+    setError(null)
+    try {
+      const res = await fetch(
+        `${backendUrl}/store/support-tickets?email=${encodeURIComponent(
+          customerEmail
+        )}`,
+        { headers: { "x-publishable-api-key": publishableKey } }
+      )
+      if (!res.ok) throw new Error("Destek talepleri yüklenemedi.")
+      const data = await res.json()
+      setTickets(data.support_tickets ?? [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Bir hata oluştu.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -53,7 +61,7 @@ export default function SupportTickets({
 
   const createTicket = async (e: React.FormEvent) => {
     e.preventDefault()
-    await fetch(`${backendUrl}/store/support-tickets`, {
+    const res = await fetch(`${backendUrl}/store/support-tickets`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -66,6 +74,11 @@ export default function SupportTickets({
         message: newForm.message,
       }),
     })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      setError(data?.message ?? "Destek talebi oluşturulamadı.")
+      return
+    }
     setNewForm({ subject: "", message: "" })
     setShowNewForm(false)
     fetchTickets()
@@ -75,7 +88,7 @@ export default function SupportTickets({
     const message = replyDrafts[id]
     if (!message?.trim()) return
 
-    await fetch(`${backendUrl}/store/support-tickets/${id}/messages`, {
+    const res = await fetch(`${backendUrl}/store/support-tickets/${id}/messages`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -83,16 +96,22 @@ export default function SupportTickets({
       },
       body: JSON.stringify({ message }),
     })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      setError(data?.message ?? "Mesaj gönderilemedi.")
+      return
+    }
     setReplyDrafts({ ...replyDrafts, [id]: "" })
     fetchTickets()
   }
 
   if (loading) {
-    return null
+    return <p className="text-sm text-gray-500">Yükleniyor...</p>
   }
 
   return (
     <div className="flex flex-col gap-y-6">
+      {error && <p className="text-sm text-red-600">{error}</p>}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl-semi">Destek</h1>
         {!showNewForm && (

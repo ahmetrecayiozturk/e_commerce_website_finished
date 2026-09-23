@@ -327,16 +327,16 @@ class IyzicoPaymentProviderService extends AbstractPaymentProvider<IyzicoOptions
       address: address?.address_1 || "Adres belirtilmedi",
       zipCode: address?.postal_code || "00000",
     }
+  }
 
-    private getClientIp(input: any): string {
-      const ip = input?.context?.ip_address
-      if (ip) return ip
-      if (process.env.NODE_ENV !== "production") return "127.0.0.1"
-      throw new MedusaError(
-        MedusaError.Types.INVALID_DATA,
-        "iyzico işlemleri için istemci IP adresi gereklidir."
-      )
-    }
+  private getClientIp(input: any): string {
+    const ip = input?.context?.ip_address
+    if (ip) return ip
+    if (process.env.NODE_ENV !== "production") return "127.0.0.1"
+    throw new MedusaError(
+      MedusaError.Types.INVALID_DATA,
+      "iyzico işlemleri için istemci IP adresi gereklidir."
+    )
   }
 }
 

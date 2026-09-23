@@ -20,8 +20,8 @@ export async function POST(
   )
   const customerId = requireCustomer(req)
   const id = requireId(req.params.id)
-  const ticket = await service.retrieveSupportTicket(id)
-  if (ticket.customer_id !== customerId) {
+  const existingTicket = await service.retrieveSupportTicket(id)
+  if (existingTicket.customer_id !== customerId) {
     res.status(403).json({ message: "Bu destek talebine erişim yetkiniz yok." })
     return
   }
