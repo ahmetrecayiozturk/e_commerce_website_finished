@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 type Review = {
   id: string
@@ -26,7 +26,7 @@ export default function ProductReviews({ productId }: { productId: string }) {
   const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
   const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY!
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     const res = await fetch(
       `${backendUrl}/store/products/${productId}/reviews`,
       { headers: { "x-publishable-api-key": publishableKey } }
@@ -34,11 +34,11 @@ export default function ProductReviews({ productId }: { productId: string }) {
     const data = await res.json()
     setReviews(data.reviews ?? [])
     setSummary(data.summary ?? { average: 0, count: 0 })
-  }
+  }, [backendUrl, productId, publishableKey])
 
   useEffect(() => {
     fetchReviews()
-  }, [productId])
+  }, [fetchReviews, productId])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()

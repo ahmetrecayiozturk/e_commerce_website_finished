@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 type Message = {
   sender: "customer" | "admin"
@@ -35,7 +35,7 @@ export default function SupportTickets({
   const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
   const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY!
 
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -53,11 +53,11 @@ export default function SupportTickets({
     } finally {
       setLoading(false)
     }
-  }
+  }, [backendUrl, customerEmail, publishableKey])
 
   useEffect(() => {
     fetchTickets()
-  }, [customerEmail])
+  }, [customerEmail, fetchTickets])
 
   const createTicket = async (e: React.FormEvent) => {
     e.preventDefault()

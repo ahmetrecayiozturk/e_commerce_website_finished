@@ -45,9 +45,8 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
           orderDisplayId={order.display_id}
           customerEmail={order.email}
           hasFulfillment={
-            (order as any).items?.some(
-              (item: any) =>
-                Number(item.detail?.fulfilled_quantity ?? 0) > 0
+            order.items?.some(
+              (item) => Number(item.detail?.fulfilled_quantity ?? 0) > 0
             ) ?? false
           }
         />

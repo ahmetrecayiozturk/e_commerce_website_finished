@@ -52,7 +52,7 @@ export default function OrderTracking({ orderId }: { orderId: string }) {
       }
     }
     fetchTracking()
-  }, [orderId])
+  }, [backendUrl, orderId, publishableKey])
 
   if (loading) {
     return null
