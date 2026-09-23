@@ -1,32 +1,24 @@
 "use client"
 
 import React from "react"
-import Input from "@modules/common/components/input"
+import { useActionState } from "react"
+import { requestPasswordReset } from "@lib/data/customer"
 import AccountInfo from "../account-info"
 import { HttpTypes } from "@medusajs/types"
-// TODO: Re-add toast notifications when Toaster component is implemented
 
 type MyInformationProps = {
   customer: HttpTypes.StoreCustomer
 }
 
-const ProfilePassword: React.FC<MyInformationProps> = ({ customer: _customer }) => {
-  const [successState, setSuccessState] = React.useState(false)
-
-  // TODO: Add support for password updates
-  const updatePassword = async () => {
-    // TODO: Re-add toast notification when Toaster component is implemented
-    console.info("Password update is not implemented")
-  }
-
-  const clearState = () => {
-    setSuccessState(false)
-  }
+const ProfilePassword: React.FC<MyInformationProps> = ({ customer }) => {
+  const [state, formAction, isPending] = useActionState(
+    requestPasswordReset,
+    { success: false, error: null }
+  )
 
   return (
     <form
-      action={updatePassword}
-      onReset={() => clearState()}
+      action={formAction}
       className="w-full"
     >
       <AccountInfo
@@ -34,35 +26,24 @@ const ProfilePassword: React.FC<MyInformationProps> = ({ customer: _customer }) 
         currentInfo={
           <span>Şifre güvenlik nedeniyle gösterilmez</span>
         }
-        isSuccess={successState}
-        isError={false}
-        errorMessage={undefined}
-        clearState={clearState}
+        isSuccess={state.success}
+        isError={Boolean(state.error)}
+        errorMessage={state.error ?? undefined}
+        clearState={() => undefined}
         data-testid="account-password-editor"
       >
-        <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="Eski şifre"
-            name="old_password"
-            required
-            type="password"
-            data-testid="old-password-input"
-          />
-          <Input
-            label="Yeni şifre"
-            type="password"
-            name="new_password"
-            required
-            data-testid="new-password-input"
-          />
-          <Input
-            label="Şifre onayla"
-            type="password"
-            name="confirm_password"
-            required
-            data-testid="confirm-password-input"
-          />
-        </div>
+        <input type="hidden" name="email" value={customer.email} />
+        <p className="text-small-regular text-ui-fg-subtle">
+          Şifrenizi değiştirmek için e-posta adresinize güvenli bir yenileme
+          bağlantısı gönderilir.
+        </p>
+        <button
+          type="submit"
+          disabled={isPending}
+          className="mt-4 rounded-rounded bg-ui-fg-base px-4 py-2 text-ui-fg-on-color disabled:opacity-50"
+        >
+          {isPending ? "Gönderiliyor..." : "Şifre yenileme bağlantısı gönder"}
+        </button>
       </AccountInfo>
     </form>
   )
