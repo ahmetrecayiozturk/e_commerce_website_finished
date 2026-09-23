@@ -5,6 +5,7 @@ import type {
 import { SUPPORT_TICKET_MODULE } from "../../../../../modules/support-tickets"
 import SupportTicketModuleService from "../../../../../modules/support-tickets/service"
 import { revalidateStorefrontOrders } from "../../../../../utils/revalidate-storefront"
+import { requireAdmin, requireId, requireText } from "../../../../../utils/auth"
 
 type AddMessageBody = {
   message: string
@@ -15,16 +16,12 @@ export async function POST(
   req: MedusaRequest<AddMessageBody>,
   res: MedusaResponse
 ): Promise<void> {
+  requireAdmin(req)
   const service: SupportTicketModuleService = req.scope.resolve(
     SUPPORT_TICKET_MODULE
   )
-  const { id } = req.params
-  const { message } = req.body
-
-  if (!message) {
-    res.status(400).json({ message: "message zorunludur." })
-    return
-  }
+  const id = requireId(req.params.id)
+  const message = requireText(req.body.message, "message")
 
   const ticket = await service.addMessage(id, "admin", message)
 

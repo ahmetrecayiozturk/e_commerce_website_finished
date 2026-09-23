@@ -4,12 +4,14 @@ import type {
 } from "@medusajs/framework/http"
 import { REVIEW_MODULE } from "../../../modules/reviews"
 import ReviewModuleService from "../../../modules/reviews/service"
+import { requireAdmin } from "../../../utils/auth"
 
 // GET /admin/reviews?status=pending -> admin panelde moderasyon listesi
 export async function GET(
   req: MedusaRequest,
   res: MedusaResponse
 ): Promise<void> {
+  requireAdmin(req)
   const reviewModuleService: ReviewModuleService = req.scope.resolve(
     REVIEW_MODULE
   )

@@ -4,6 +4,7 @@ import type {
 } from "@medusajs/framework/http"
 import { SUPPORT_TICKET_MODULE } from "../../../../../modules/support-tickets"
 import SupportTicketModuleService from "../../../../../modules/support-tickets/service"
+import { requireAdmin, requireId } from "../../../../../utils/auth"
 
 type UpdateStatusBody = {
   status: "open" | "closed"
@@ -14,10 +15,11 @@ export async function POST(
   req: MedusaRequest<UpdateStatusBody>,
   res: MedusaResponse
 ): Promise<void> {
+  requireAdmin(req)
   const service: SupportTicketModuleService = req.scope.resolve(
     SUPPORT_TICKET_MODULE
   )
-  const { id } = req.params
+  const id = requireId(req.params.id)
   const { status } = req.body
 
   if (!["open", "closed"].includes(status)) {

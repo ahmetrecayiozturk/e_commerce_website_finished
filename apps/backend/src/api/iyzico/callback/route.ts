@@ -14,13 +14,22 @@ export async function POST(
 ): Promise<void> {
   const token = (req.body as any)?.token
 
-  const storefrontUrl =
-    process.env.STOREFRONT_URL || "http://localhost:8000"
+  const storefrontUrl = process.env.STOREFRONT_URL
+
+  if (!storefrontUrl) {
+    res.status(500).json({ message: "STOREFRONT_URL yapılandırılmalıdır." })
+    return
+  }
 
   if (!token) {
     res.redirect(`${storefrontUrl}/checkout?error=missing_token`)
     return
   }
 
-  res.redirect(`${storefrontUrl}/tr/checkout/iyzico-result?token=${token}`)
+  const redirectUrl = new URL(
+    "/tr/checkout/iyzico-result",
+    storefrontUrl.endsWith("/") ? storefrontUrl : `${storefrontUrl}/`
+  )
+  redirectUrl.searchParams.set("token", token)
+  res.redirect(redirectUrl.toString())
 }

@@ -4,12 +4,14 @@ import type {
 } from "@medusajs/framework/http"
 import { RETURN_REQUEST_MODULE } from "../../../modules/return-requests"
 import ReturnRequestModuleService from "../../../modules/return-requests/service"
+import { requireAdmin } from "../../../utils/auth"
 
 // GET /admin/return-requests?status=pending -> admin moderasyon listesi
 export async function GET(
   req: MedusaRequest,
   res: MedusaResponse
 ): Promise<void> {
+  requireAdmin(req)
   const service: ReturnRequestModuleService = req.scope.resolve(
     RETURN_REQUEST_MODULE
   )

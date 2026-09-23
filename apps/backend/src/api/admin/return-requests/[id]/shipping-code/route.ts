@@ -5,6 +5,7 @@ import type {
 import { RETURN_REQUEST_MODULE } from "../../../../../modules/return-requests"
 import ReturnRequestModuleService from "../../../../../modules/return-requests/service"
 import { revalidateStorefrontOrders } from "../../../../../utils/revalidate-storefront"
+import { requireAdmin, requireId, requireText } from "../../../../../utils/auth"
 
 type SetShippingCodeBody = {
   return_carrier: string
@@ -18,24 +19,27 @@ export async function POST(
   req: MedusaRequest<SetShippingCodeBody>,
   res: MedusaResponse
 ): Promise<void> {
+  requireAdmin(req)
   const service: ReturnRequestModuleService = req.scope.resolve(
     RETURN_REQUEST_MODULE
   )
-  const { id } = req.params
+  const id = requireId(req.params.id)
   const { return_carrier, return_code, return_instructions } = req.body
 
-  if (!return_carrier || !return_code) {
-    res.status(400).json({
-      message: "return_carrier ve return_code zorunludur.",
-    })
+  const validCarriers = ["yurtici", "aras", "mng", "ptt", "surat", "ups", "other"]
+  if (!validCarriers.includes(return_carrier)) {
+    res.status(400).json({ message: "Geçersiz return_carrier değeri." })
     return
   }
+  const validReturnCode = requireText(return_code, "return_code", 200)
 
   const request = await service.updateReturnRequests({
     id,
     return_carrier: return_carrier as any,
-    return_code,
-    return_instructions,
+    return_code: validReturnCode,
+    return_instructions: return_instructions
+      ? requireText(return_instructions, "return_instructions", 2000)
+      : undefined,
   } as any)
 
   await revalidateStorefrontOrders()
