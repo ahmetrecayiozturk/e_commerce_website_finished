@@ -195,7 +195,7 @@ const ShippingAddress = ({
       </div>
       <div className="grid grid-cols-2 gap-4 mb-4">
         <Input
-          label="Email"
+          label="E-posta"
           name="email"
           type="email"
           title="Enter a valid email address."

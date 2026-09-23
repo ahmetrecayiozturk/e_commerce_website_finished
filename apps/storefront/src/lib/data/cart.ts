@@ -314,7 +314,7 @@ export async function submitPromotionForm(
   try {
     await applyPromotions([code])
   } catch (e: unknown) {
-    return e instanceof Error ? e.message : "Promosyon uygulanamad?."
+    return e instanceof Error ? e.message : "Promosyon uygulanamadı."
   }
 }
 
@@ -363,7 +363,7 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
       }
     await updateCart(data)
   } catch (e: unknown) {
-    return e instanceof Error ? e.message : "Adresler g?ncellenemedi."
+    return e instanceof Error ? e.message : "Adresler güncellenemedi."
   }
 
   redirect(

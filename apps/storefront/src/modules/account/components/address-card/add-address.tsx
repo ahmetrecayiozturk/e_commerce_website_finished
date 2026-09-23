@@ -153,7 +153,7 @@ const AddAddress = ({
               >
                 İptal
               </Button>
-              <SubmitButton data-testid="save-button">Save</SubmitButton>
+              <SubmitButton data-testid="save-button">Kaydet</SubmitButton>
             </div>
           </Modal.Footer>
         </form>
