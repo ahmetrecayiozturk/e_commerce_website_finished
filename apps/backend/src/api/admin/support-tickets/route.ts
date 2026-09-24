@@ -4,12 +4,14 @@ import type {
 } from "@medusajs/framework/http"
 import { SUPPORT_TICKET_MODULE } from "../../../modules/support-tickets"
 import SupportTicketModuleService from "../../../modules/support-tickets/service"
+import { requireAdmin } from "../../../utils/auth"
 
 // GET /admin/support-tickets?status=open -> tüm destek taleplerini listeler
 export async function GET(
   req: MedusaRequest,
   res: MedusaResponse
 ): Promise<void> {
+  requireAdmin(req)
   const service: SupportTicketModuleService = req.scope.resolve(
     SUPPORT_TICKET_MODULE
   )

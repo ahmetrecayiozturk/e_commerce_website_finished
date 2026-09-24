@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 type ReturnRequest = {
   id: string
@@ -46,6 +46,7 @@ export default function OrderReturnRequest({
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
     customer_name: "",
     item_description: "",
@@ -55,39 +56,54 @@ export default function OrderReturnRequest({
   const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
   const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY!
 
-  const fetchReviews = async () => {
-    const res = await fetch(
-      `${backendUrl}/store/orders/${orderId}/return-requests`,
-      { headers: { "x-publishable-api-key": publishableKey } }
-    )
-    const data = await res.json()
-    setRequests(data.return_requests ?? [])
-    setLoading(false)
-  }
+  const fetchRequests = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `${backendUrl}/store/orders/${orderId}/return-requests`,
+        { headers: { "x-publishable-api-key": publishableKey } }
+      )
+      if (!res.ok) throw new Error("İade talepleri yüklenemedi.")
+      const data = await res.json()
+      setRequests(data.return_requests ?? [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Bir hata oluştu.")
+    } finally {
+      setLoading(false)
+    }
+  }, [backendUrl, orderId, publishableKey])
 
   useEffect(() => {
-    fetchReviews()
-  }, [orderId])
+    fetchRequests()
+  }, [fetchRequests, orderId])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await fetch(`${backendUrl}/store/orders/${orderId}/return-requests`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-publishable-api-key": publishableKey,
-      },
-      body: JSON.stringify({
-        order_display_id: orderDisplayId,
-        customer_email: customerEmail,
-        customer_name: form.customer_name,
-        item_description: form.item_description,
-        reason: form.reason,
-      }),
-    })
-    setSubmitted(true)
-    setShowForm(false)
-    fetchReviews()
+    setError(null)
+    try {
+      const res = await fetch(`${backendUrl}/store/orders/${orderId}/return-requests`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-publishable-api-key": publishableKey,
+        },
+        body: JSON.stringify({
+          order_display_id: orderDisplayId,
+          customer_email: customerEmail,
+          customer_name: form.customer_name,
+          item_description: form.item_description,
+          reason: form.reason,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        throw new Error(data?.message ?? "İade talebi oluşturulamadı.")
+      }
+      setSubmitted(true)
+      setShowForm(false)
+      fetchRequests()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Bir hata oluştu.")
+    }
   }
 
   if (loading) {
@@ -145,6 +161,7 @@ export default function OrderReturnRequest({
           İade talebiniz alındı, incelendikten sonra size dönüş yapılacak.
         </p>
       )}
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       {!showForm &&
         !submitted &&

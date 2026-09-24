@@ -84,6 +84,62 @@ export const updateCustomer = async (body: HttpTypes.StoreUpdateCustomer) => {
   return updateRes
 }
 
+export async function requestPasswordReset(
+  _currentState: unknown,
+  formData: FormData
+) {
+  const email = String(formData.get("email") ?? "").trim()
+
+  if (!email) {
+    return { success: false, error: "E-posta adresi gerekli." }
+  }
+
+  try {
+    await sdk.auth.resetPassword("customer", "emailpass", {
+      identifier: email,
+    })
+    return { success: true, error: null }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Şifre yenileme bağlantısı gönderilemedi.",
+    }
+  }
+
+}
+
+export async function updatePasswordWithToken(
+  _currentState: unknown,
+  formData: FormData
+) {
+  const token = String(formData.get("token") ?? "")
+  const password = String(formData.get("password") ?? "")
+  const confirmation = String(formData.get("confirmation") ?? "")
+
+  if (!token || !password || password !== confirmation) {
+    return {
+      success: false,
+      error: "Şifre ve onay alanları aynı olmalı.",
+    }
+  }
+
+  try {
+    await sdk.auth.updateProvider("customer", "emailpass", { password }, token)
+    return { success: true, error: null }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Şifre güncellenemedi. Bağlantının süresi dolmuş olabilir.",
+    }
+  }
+}
+
 export async function signup(
   _currentState: unknown,
   formData: FormData

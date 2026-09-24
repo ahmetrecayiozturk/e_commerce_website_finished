@@ -154,7 +154,7 @@ const StripePaymentButton = ({
         isLoading={submitting}
         data-testid={dataTestId}
       >
-        Place order
+        Siparişi tamamla
       </Button>
       <ErrorMessage
         error={errorMessage}
@@ -193,7 +193,7 @@ const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
         size="large"
         data-testid="submit-order-button"
       >
-        Place order
+        Siparişi tamamla
       </Button>
       <ErrorMessage
         error={errorMessage}
@@ -215,9 +215,9 @@ const IyzicoPaymentButton = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const paymentSession = cart.payment_collection?.payment_sessions?.[0]
-  const paymentPageUrl = (paymentSession?.data as any)?.paymentPageUrl as
-    | string
-    | undefined
+  const paymentPageUrl = (
+    paymentSession?.data as { paymentPageUrl?: string } | undefined
+  )?.paymentPageUrl
 
   const handlePayment = () => {
     if (!paymentPageUrl) {

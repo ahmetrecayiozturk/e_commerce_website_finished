@@ -3,6 +3,7 @@ import type {
   MedusaResponse,
 } from "@medusajs/framework/http"
 import { Modules } from "@medusajs/framework/utils"
+import { requireCustomer, requireId, requireText } from "../../../../../utils/auth"
 import { RETURN_REQUEST_MODULE } from "../../../../../modules/return-requests"
 import ReturnRequestModuleService from "../../../../../modules/return-requests/service"
 
@@ -14,10 +15,17 @@ export async function GET(
   const service: ReturnRequestModuleService = req.scope.resolve(
     RETURN_REQUEST_MODULE
   )
-  const orderId = req.params.id
+  const customerId = requireCustomer(req)
+  const orderId = requireId(req.params.id, "order_id")
+  const orderService: any = req.scope.resolve(Modules.ORDER)
+  const order = await orderService.retrieveOrder(orderId)
+  if (order.customer_id !== customerId) {
+    res.status(403).json({ message: "Bu siparişe erişim yetkiniz yok." })
+    return
+  }
 
   const requests = await service.listReturnRequests(
-    { order_id: orderId, type: "cancellation" } as any,
+    { order_id: orderId, type: "cancellation", customer_id: customerId } as any,
     { order: { created_at: "DESC" } }
   )
 
@@ -41,10 +49,15 @@ export async function POST(
   const service: ReturnRequestModuleService = req.scope.resolve(
     RETURN_REQUEST_MODULE
   )
-  const orderId = req.params.id
+  const customerId = requireCustomer(req)
+  const orderId = requireId(req.params.id, "order_id")
 
   const orderModuleService: any = req.scope.resolve(Modules.ORDER)
   const order = await orderModuleService.retrieveOrder(orderId)
+  if (order.customer_id !== customerId) {
+    res.status(403).json({ message: "Bu siparişe erişim yetkiniz yok." })
+    return
+  }
 
   const items = (order as any).items ?? []
   const hasAnyFulfillment = items.some((item: any) => {
@@ -61,28 +74,18 @@ export async function POST(
     return
   }
 
-  const {
-    order_display_id,
-    customer_email,
-    customer_name,
-    item_description,
-    reason,
-  } = req.body
-
-  if (!customer_email || !customer_name || !item_description || !reason) {
-    res.status(400).json({
-      message:
-        "customer_email, customer_name, item_description ve reason zorunludur.",
-    })
-    return
-  }
+  const customerService: any = req.scope.resolve(Modules.CUSTOMER)
+  const customer = await customerService.retrieveCustomer(customerId)
+  const item_description = requireText(req.body.item_description, "item_description")
+  const reason = requireText(req.body.reason, "reason")
 
   const request = await service.createReturnRequests({
     order_id: orderId,
-    order_display_id,
+    order_display_id: req.body.order_display_id,
     type: "cancellation",
-    customer_email,
-    customer_name,
+    customer_id: customerId,
+    customer_email: customer.email,
+    customer_name: `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() || customer.email,
     item_description,
     reason,
     status: "pending",

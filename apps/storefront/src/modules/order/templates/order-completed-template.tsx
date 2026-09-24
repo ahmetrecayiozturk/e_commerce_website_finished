@@ -9,7 +9,6 @@ import OrderDetails from "@modules/order/components/order-details"
 import ShippingDetails from "@modules/order/components/shipping-details"
 import PaymentDetails from "@modules/order/components/payment-details"
 import { HttpTypes } from "@medusajs/types"
-import OrderReturnRequest from "@modules/order/components/order-return-request"
 type OrderCompletedTemplateProps = {
   order: HttpTypes.StoreOrder
 }

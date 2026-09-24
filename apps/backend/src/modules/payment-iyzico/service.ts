@@ -16,6 +16,13 @@ class IyzicoPaymentProviderService extends AbstractPaymentProvider<IyzicoOptions
     super(container, options)
     this.options_ = options
 
+    if (!options.api_key || !options.secret_key || !options.base_url) {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        "iyzico API ayarları eksik."
+      )
+    }
+
     this.client_ = new Iyzipay({
       apiKey: options.api_key,
       secretKey: options.secret_key,
@@ -26,6 +33,23 @@ class IyzicoPaymentProviderService extends AbstractPaymentProvider<IyzicoOptions
   async initiatePayment(input: any): Promise<any> {
     const { amount, currency_code, context } = input
     const customer = context?.customer
+    const isProduction = process.env.NODE_ENV === "production"
+    const identityNumber = customer?.metadata?.identity_number
+    const ip = context?.ip_address
+    const backendUrl = process.env.MEDUSA_BACKEND_URL
+
+    if (isProduction && (!identityNumber || !ip || !backendUrl)) {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        "iyzico için müşteri kimliği, istemci IP adresi ve MEDUSA_BACKEND_URL gereklidir."
+      )
+    }
+    if (!backendUrl) {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        "MEDUSA_BACKEND_URL yapılandırılmalıdır."
+      )
+    }
 
     const conversationId = `cart_${context?.resource_id ?? Date.now()}`
 
@@ -36,17 +60,17 @@ class IyzicoPaymentProviderService extends AbstractPaymentProvider<IyzicoOptions
       paidPrice: this.toIyzicoAmount(amount),
       currency: this.mapCurrency(currency_code),
       basketId: conversationId,
-      callbackUrl: `${process.env.MEDUSA_BACKEND_URL}/iyzico/callback`,
+      callbackUrl: `${backendUrl.replace(/\/$/, "")}/iyzico/callback`,
       enabledInstallments: [1, 2, 3, 6, 9],
       buyer: {
         id: customer?.id ?? "guest",
         name: customer?.first_name || "Musteri",
         surname: customer?.last_name || "-",
-        email: customer?.email || "guest@example.com",
-        identityNumber: "11111111111",
+        email: customer?.email,
+        identityNumber,
         registrationAddress:
           customer?.billing_address?.address_1 || "Adres belirtilmedi",
-        ip: (context as any)?.ip_address || "127.0.0.1",
+        ip: ip || "127.0.0.1",
         city: customer?.billing_address?.city || "Istanbul",
         country: customer?.billing_address?.country_code || "Turkey",
       },
@@ -79,8 +103,6 @@ class IyzicoPaymentProviderService extends AbstractPaymentProvider<IyzicoOptions
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
         const result = await callIyzico()
-        console.log("IYZICO RESULT:", JSON.stringify(result))
-
         if (result.status !== "success") {
           return {
             id: conversationId,
@@ -101,7 +123,6 @@ class IyzicoPaymentProviderService extends AbstractPaymentProvider<IyzicoOptions
         }
       } catch (err: any) {
         lastError = err
-        console.log(`IYZICO ERROR (deneme ${attempt}/3):`, JSON.stringify(err))
         // Kısa bir bekleme sonrası tekrar dene
         await new Promise((r) => setTimeout(r, 500))
       }
@@ -164,7 +185,7 @@ class IyzicoPaymentProviderService extends AbstractPaymentProvider<IyzicoOptions
         {
           locale: Iyzipay.LOCALE.TR,
           paymentId,
-          ip: "127.0.0.1",
+          ip: this.getClientIp(input),
         },
         (err: any, result: any) => {
           if (err || result.status !== "success") {
@@ -229,7 +250,7 @@ class IyzicoPaymentProviderService extends AbstractPaymentProvider<IyzicoOptions
           locale: Iyzipay.LOCALE.TR,
           paymentTransactionId,
           price: this.toIyzicoAmount(amount),
-          ip: "127.0.0.1",
+          ip: this.getClientIp(input),
         },
         (err: any, response: any) => {
           if (err) {
@@ -306,6 +327,16 @@ class IyzicoPaymentProviderService extends AbstractPaymentProvider<IyzicoOptions
       address: address?.address_1 || "Adres belirtilmedi",
       zipCode: address?.postal_code || "00000",
     }
+  }
+
+  private getClientIp(input: any): string {
+    const ip = input?.context?.ip_address
+    if (ip) return ip
+    if (process.env.NODE_ENV !== "production") return "127.0.0.1"
+    throw new MedusaError(
+      MedusaError.Types.INVALID_DATA,
+      "iyzico işlemleri için istemci IP adresi gereklidir."
+    )
   }
 }
 

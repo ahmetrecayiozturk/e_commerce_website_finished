@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 type CancellationRequest = {
   id: string
@@ -43,7 +43,7 @@ export default function OrderCancellationRequest({
   const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
   const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY!
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     try {
       const res = await fetch(
         `${backendUrl}/store/orders/${orderId}/cancellation-requests`,
@@ -54,11 +54,11 @@ export default function OrderCancellationRequest({
     } finally {
       setLoading(false)
     }
-  }
+  }, [backendUrl, orderId, publishableKey])
 
   useEffect(() => {
     fetchRequests()
-  }, [orderId])
+  }, [fetchRequests, orderId])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()

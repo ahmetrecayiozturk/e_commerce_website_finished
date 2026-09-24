@@ -23,13 +23,13 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
   return (
     <div className="flex flex-col justify-center gap-y-4">
       <div className="flex gap-2 justify-between items-center">
-        <h1 className="text-2xl-semi">Order details</h1>
+        <h1 className="text-2xl-semi">Sipariş detayları</h1>
         <LocalizedClientLink
           href="/account/orders"
           className="flex gap-2 items-center text-ui-fg-subtle hover:text-ui-fg-base"
           data-testid="back-to-overview-button"
         >
-          <XMark /> Back to overview
+          <XMark /> Siparişlere dön
         </LocalizedClientLink>
       </div>
       <div
@@ -45,9 +45,8 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
           orderDisplayId={order.display_id}
           customerEmail={order.email}
           hasFulfillment={
-            (order as any).items?.some(
-              (item: any) =>
-                Number(item.detail?.fulfilled_quantity ?? 0) > 0
+            order.items?.some(
+              (item) => Number(item.detail?.fulfilled_quantity ?? 0) > 0
             ) ?? false
           }
         />

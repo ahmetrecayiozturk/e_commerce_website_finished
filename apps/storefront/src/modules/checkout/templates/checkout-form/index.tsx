@@ -21,7 +21,14 @@ export default async function CheckoutForm({
   const paymentMethods = await listCartPaymentMethods(cart.region?.id ?? "")
 
   if (!shippingMethods || !paymentMethods) {
-    return null
+    return (
+      <div className="rounded-lg border border-ui-border-base p-6">
+        <p className="text-ui-fg-subtle">
+          Teslimat veya ödeme yöntemleri yüklenemedi. Lütfen sayfayı yenileyip
+          tekrar deneyin.
+        </p>
+      </div>
+    )
   }
 
   return (

@@ -4,6 +4,7 @@ import type {
 } from "@medusajs/framework/http"
 import { REVIEW_MODULE } from "../../../../modules/reviews"
 import ReviewModuleService from "../../../../modules/reviews/service"
+import { requireAdmin, requireId } from "../../../../utils/auth"
 
 type UpdateReviewBody = {
   status: "approved" | "rejected" | "pending"
@@ -14,10 +15,11 @@ export async function POST(
   req: MedusaRequest<UpdateReviewBody>,
   res: MedusaResponse
 ): Promise<void> {
+  requireAdmin(req)
   const reviewModuleService: ReviewModuleService = req.scope.resolve(
     REVIEW_MODULE
   )
-  const { id } = req.params
+  const id = requireId(req.params.id)
   const { status } = req.body
 
   if (!["approved", "rejected", "pending"].includes(status)) {
@@ -38,10 +40,11 @@ export async function DELETE(
   req: MedusaRequest,
   res: MedusaResponse
 ): Promise<void> {
+  requireAdmin(req)
   const reviewModuleService: ReviewModuleService = req.scope.resolve(
     REVIEW_MODULE
   )
-  const { id } = req.params
+  const id = requireId(req.params.id)
 
   await reviewModuleService.deleteReviews([id])
 

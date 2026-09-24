@@ -1,4 +1,3 @@
-import { Github } from "@medusajs/icons";
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { Button, Heading } from "@modules/common/components/ui";
 const Hero = () => {

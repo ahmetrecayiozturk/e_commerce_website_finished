@@ -11,7 +11,8 @@ export default async function NotFound() {
     <div className="flex flex-col gap-4 items-center justify-center min-h-[calc(100vh-64px)]">
       <h1 className="text-2xl-semi text-ui-fg-base">Page not found</h1>
       <p className="text-small-regular text-ui-fg-base">
-        Bu sayfa mevcut değil veya taşınmış olabilir. Lütfen URL'yi kontrol edin veya ana sayfaya dönün.
+        Bu sayfa mevcut değil veya taşınmış olabilir. Lütfen URL&apos;yi kontrol
+        edin veya ana sayfaya dönün.
       </p>
       <InteractiveLink href="/">Go to frontpage</InteractiveLink>
     </div>

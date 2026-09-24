@@ -37,7 +37,7 @@ const VerifyAccount = () => {
       className="max-w-sm w-full flex flex-col items-center text-center gap-y-4"
       data-testid="verify-account-page"
     >
-      <h1 className="text-large-semi uppercase">Email verification</h1>
+      <h1 className="text-large-semi uppercase">E-posta doğrulama</h1>
 
       {state === "verifying" && (
         <p className="text-base-regular text-ui-fg-base">
@@ -51,7 +51,7 @@ const VerifyAccount = () => {
             E-mailiniz doğrulandı. Artık hesabınıza giriş yapabilirsiniz.
           </p>
           <LocalizedClientLink href="/account">
-            <Button variant="primary">Go to sign in</Button>
+            <Button variant="primary">Giriş sayfasına git</Button>
           </LocalizedClientLink>
         </>
       )}
@@ -62,7 +62,7 @@ const VerifyAccount = () => {
             Bu doğrulama bağlantısı geçersiz veya süresi dolmuş. Yeni bir doğrulama e-postası almak için giriş yapın.
           </p>
           <LocalizedClientLink href="/account">
-            <Button variant="secondary">Go to sign in</Button>
+            <Button variant="secondary">Giriş sayfasına git</Button>
           </LocalizedClientLink>
         </>
       )}

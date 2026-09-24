@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 type Review = {
   id: string
@@ -21,11 +21,12 @@ export default function ProductReviews({ productId }: { productId: string }) {
     content: "",
   })
   const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
   const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY!
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     const res = await fetch(
       `${backendUrl}/store/products/${productId}/reviews`,
       { headers: { "x-publishable-api-key": publishableKey } }
@@ -33,15 +34,16 @@ export default function ProductReviews({ productId }: { productId: string }) {
     const data = await res.json()
     setReviews(data.reviews ?? [])
     setSummary(data.summary ?? { average: 0, count: 0 })
-  }
+  }, [backendUrl, productId, publishableKey])
 
   useEffect(() => {
     fetchReviews()
-  }, [productId])
+  }, [fetchReviews, productId])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await fetch(`${backendUrl}/store/products/${productId}/reviews`, {
+    setError(null)
+    const res = await fetch(`${backendUrl}/store/products/${productId}/reviews`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -49,6 +51,11 @@ export default function ProductReviews({ productId }: { productId: string }) {
       },
       body: JSON.stringify(form),
     })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      setError(data?.message ?? "Yorum gönderilemedi.")
+      return
+    }
     setSubmitted(true)
     setForm({ customer_name: "", rating: 5, title: "", content: "" })
   }
@@ -92,6 +99,7 @@ export default function ProductReviews({ productId }: { productId: string }) {
         </p>
       ) : (
         <form onSubmit={submit} className="flex flex-col gap-3 max-w-md">
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <h3 className="font-medium">Yorum Yaz</h3>
           <input
             required

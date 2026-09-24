@@ -2,6 +2,7 @@ import { model } from "@medusajs/framework/utils"
 
 const ReturnRequest = model.define("return_request", {
   id: model.id().primaryKey(),
+  customer_id: model.text().index("IDX_return_request_customer_id"),
   order_id: model.text().index("IDX_return_request_order_id"),
   order_display_id: model.number().nullable(),
   type: model.enum(["return", "cancellation"]).default("return"),
